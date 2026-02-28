@@ -10,12 +10,12 @@ class PostgresConfig(BaseSettings):
     user: str = Field(
         alias="POSTGRES_USER",
         description="Postgres user name",
-        default="admin",
+        default="user",
     )
     password: str = Field(
         alias="POSTGRES_PASSWORD",
         description="Postgres user password",
-        default="admin",
+        default="password",
     )
     host: str = Field(
         alias="POSTGRES_HOST",

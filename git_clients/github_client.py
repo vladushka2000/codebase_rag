@@ -6,6 +6,7 @@ from typing import AsyncGenerator, List, Optional, Dict, Any
 import httpx
 
 from dto import git_file_dto
+from utils import const
 
 http_client_error = RuntimeError("Http client is not initialized")
 
@@ -18,20 +19,21 @@ class GitHubClient:
     def __init__(
         self,
         repo: str,
+        repo_owner: str,
+        token: str,
         branch: Optional[str] = None,
-        token: Optional[str] = None,
     ) -> None:
         """
         Init variables
         :param repo: repo name
-        :param branch: repo branch
         :param token: github token
+        :param branch: repo branch
         """
 
         self.repo = repo
         self.branch = branch
         self.token = token
-        self.url = f"https://api.github.com/repos/{repo}/contents"
+        self.url = f"https://api.github.com/repos/{repo_owner}/{repo}/contents"
         self._client: Optional[httpx.AsyncClient] = None
 
     @asynccontextmanager
@@ -96,6 +98,12 @@ class GitHubClient:
             path = file_info["path"]
             ext = Path(path).suffix.lower()
 
+            file_type = (
+                const.FileType.CODE
+                if ext.lower() in const.code_extensions
+                else const.FileType.DOC
+            ) if ext else const.FileType.UNKNOWN
+
             content = None
             download_url = file_info.get("download_url")
 
@@ -109,7 +117,7 @@ class GitHubClient:
                 path=path,
                 sha=file_info["sha"],
                 size=file_info.get("size", 0),
-                type=ext,
+                type=file_type,
                 content=content
             )
 
@@ -138,7 +146,8 @@ class GitHubClient:
                     dir_items = await self._get(dir_url, params)
 
                     if isinstance(dir_items, list):
-                        await self._collect_files_metadata(dir_items)
+                        subdir_files = await self._collect_files_metadata(dir_items)
+                        result.extend(subdir_files)
 
                 except Exception as e:
                     print(f"Error while traversing directory {item['path']}: {e}")
