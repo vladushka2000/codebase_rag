@@ -58,10 +58,6 @@ class FileORM(base_model_orm.Base):
         """,
         comment="Full-text search vector",
     )
-    parent_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("files.id"),
-        nullable=True,
-    )
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),
         default=datetime.datetime.now(
