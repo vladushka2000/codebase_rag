@@ -3,10 +3,7 @@ import uuid
 from sqlalchemy import UUID as SA_UUID, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
-from config import app_config
 from orm.models import base_model_orm
-
-app_config_ = app_config.AppConfig()
 
 
 class PythonDependencyGraphORM(base_model_orm.Base):

@@ -2,15 +2,15 @@ import datetime
 import uuid
 from typing import Optional
 
-from sqlalchemy import UUID as SA_UUID, String, Float, Enum as SA_Enum, DateTime, Text, ForeignKey, Index
+from sqlalchemy import UUID as SA_UUID, String, Float, Enum as SA_Enum, DateTime, Text, Index
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
-from config import app_config
+from config import ai_config
 from orm.models import base_model_orm
 from utils import const
 
-app_config_ = app_config.AppConfig()
+ai_config_ = ai_config.AIConfig()
 
 
 class FileORM(base_model_orm.Base):
@@ -49,12 +49,12 @@ class FileORM(base_model_orm.Base):
     content: Mapped[str] = mapped_column(
         Text,
         nullable=False,
-        comment="File content"
+        comment="File content",
     )
     search_vector: Mapped[Optional[str]] = mapped_column(
         TSVECTOR,
         server_default=f"""
-            to_tsvector('{app_config_.language}', {content})
+            to_tsvector('{ai_config_.language}', {content})
         """,
         comment="Full-text search vector",
     )
@@ -63,6 +63,7 @@ class FileORM(base_model_orm.Base):
         default=datetime.datetime.now(
             datetime.UTC
         ),
+        comment="Creation time",
     )
 
     __table_args__ = (
