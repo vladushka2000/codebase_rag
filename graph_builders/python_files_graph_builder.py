@@ -4,14 +4,14 @@ from collections import defaultdict
 from math import ceil
 from typing import Dict, Set, List
 
-from bases.orm_repositories import base_files_repository, base_python_dependency_graph_repository
-from dto import git_file_dto, python_dependency_graph_node_dto
+from bases.orm_repositories import base_files_repository, base_dependency_graph_repository
+from dto import git_file_dto, dependency_graph_node_dto
 from utils import const
 
 
 async def update_python_dependencies(
     files_repo: base_files_repository.BaseFilesRepository,
-    python_deps_repo: base_python_dependency_graph_repository.BasePythonDependencyGraphRepository,
+    python_deps_repo: base_dependency_graph_repository.BaseDependencyGraphRepository,
     batch_size: int = 10
 ) -> None:
     """
@@ -160,13 +160,13 @@ async def _create_dependency_graph_nodes(
     """
 
     nodes_to_create: List[
-        python_dependency_graph_node_dto.PythonDependencyGraphNode
+        dependency_graph_node_dto.DependencyGraphNode
     ] = []
 
     for file_id, deps in all_dependencies.items():
         for dep_id in deps:
             nodes_to_create.append(
-                python_dependency_graph_node_dto.PythonDependencyGraphNode(
+                dependency_graph_node_dto.DependencyGraphNode(
                     file_id=file_id,
                     parent_id=dep_id,
                 )

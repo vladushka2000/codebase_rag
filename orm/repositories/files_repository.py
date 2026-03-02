@@ -1,4 +1,5 @@
-from typing import Optional, List
+import uuid
+from typing import Optional, List, Dict
 
 from sqlalchemy import update, select
 from sqlalchemy.sql.functions import func
@@ -60,6 +61,56 @@ class FilesRepository(
                 )
                 for db_obj in db_objs
             ]
+
+    async def get_by_id(self, file_id: uuid.UUID) -> Optional[git_file_dto.GitFileInDB]:
+        """
+        Get file by id
+        :param file_id: file id
+        :return: file if found, None otherwise
+        """
+
+        async with self.pg_client.session() as session:
+            query = select(file_orm.FileORM).where(file_orm.FileORM.id == file_id)
+            result = await session.execute(query)
+            db_obj = result.scalar_one_or_none()
+
+            if not db_obj:
+                return None
+
+            return git_file_dto.GitFileInDB(
+                id=db_obj.id,
+                path=db_obj.path,
+                sha=db_obj.sha,
+                size=db_obj.size_bytes,
+                type=db_obj.type,
+                content=db_obj.content,
+            )
+
+    async def get_by_ids(self, file_ids: List[uuid.UUID]) -> Dict[uuid.UUID, git_file_dto.GitFileInDB]:
+        """
+        Get multiple files by their ids in a single query
+        :param file_ids: list of file ids
+        :return: dict of files. Key - id, value - data
+        """
+
+        async with self.pg_client.session() as session:
+            query = select(file_orm.FileORM).where(
+                file_orm.FileORM.id.in_(file_ids)
+            )
+            result = await session.execute(query)
+            db_objs = result.scalars().all()
+
+            return {
+                db_obj.id: git_file_dto.GitFileInDB(
+                    id=db_obj.id,
+                    path=db_obj.path,
+                    sha=db_obj.sha,
+                    size=db_obj.size_bytes,
+                    type=db_obj.type,
+                    content=db_obj.content,
+                )
+                for db_obj in db_objs
+            }
 
     async def get_files_count(
         self,

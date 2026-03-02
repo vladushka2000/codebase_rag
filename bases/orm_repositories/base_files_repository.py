@@ -1,5 +1,6 @@
 import abc
-from typing import Optional, List
+import uuid
+from typing import Optional, List, Dict
 
 from dto import git_file_dto
 from utils import const
@@ -62,6 +63,26 @@ class BaseFilesRepository(abc.ABC):
         """
         Update files
         :param objs_in: files batch
+        """
+
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def get_by_id(self, file_id: uuid.UUID) -> Optional[git_file_dto.GitFileInDB]:
+        """
+        Get file by id
+        :param file_id: file id
+        :return: file if found, None otherwise
+        """
+
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def get_by_ids(self, file_ids: List[uuid.UUID]) -> Dict[uuid.UUID, git_file_dto.GitFileInDB]:
+        """
+        Get multiple files by their ids in a single query
+        :param file_ids: list of file ids
+        :return: dict of files. Key - id, value - data
         """
 
         raise NotImplementedError

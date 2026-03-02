@@ -1,13 +1,13 @@
 import uuid
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Column, Integer, Text, ForeignKey, JSON, Index, UUID as SA_UUID
+from sqlalchemy import Column, Integer, Text, ForeignKey, Index, UUID as SA_UUID
 
 from orm.models import base_model_orm
 
 
-class FileChunkORM(base_model_orm.Base):
-    __tablename__ = "file_chunks"
+class EmbedChunkORM(base_model_orm.Base):
+    __tablename__ = "embed_chunks"
 
     id = Column(
         SA_UUID(as_uuid=True),
@@ -18,7 +18,7 @@ class FileChunkORM(base_model_orm.Base):
     file_id = Column(
         SA_UUID(as_uuid=True),
         ForeignKey("files.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
         comment="File id"
     )
     chunk_index = Column(Integer, nullable=False, comment="Index of chunk")

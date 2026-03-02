@@ -58,11 +58,7 @@ class FilesEmbedder(base_embedder.BaseEmbedder):
                 page_content=chunk,
                 metadata={
                     "file_id": str(file.id),
-                    "path": file.path,
-                    "sha": file.sha,
                     "chunk_index": i,
-                    "total_chunks": len(chunks),
-                    "type": file.type,
                 }
             )
             documents.append(doc)

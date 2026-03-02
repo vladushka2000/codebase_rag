@@ -42,7 +42,10 @@ class FileORM(base_model_orm.Base):
         comment="File size in bytes",
     )
     type: Mapped[const.FileType] = mapped_column(
-        SA_Enum(const.FileType),
+        SA_Enum(
+            const.FileType,
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         nullable=False,
         comment="File type",
     )

@@ -3,18 +3,18 @@ import uuid
 from pydantic import BaseModel, Field
 
 
-class PythonDependencyGraphNode(BaseModel):
+class DependencyGraphNode(BaseModel):
     """
-    Python dependency graph node
+    Dependency graph node
     """
 
     file_id: uuid.UUID = Field(description="Child file id")
     parent_id: uuid.UUID = Field(description="Parent file id")
 
 
-class PythonDependencyGraphNodeInDB(PythonDependencyGraphNode):
+class PythonDependencyGraphNodeInDB(DependencyGraphNode):
     """
-    Python dependency graph node as DB object
+    Dependency graph node as DB object
     """
 
     id: uuid.UUID = Field(description="Id in DB")
