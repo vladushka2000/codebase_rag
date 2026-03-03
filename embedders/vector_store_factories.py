@@ -2,6 +2,9 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_postgres import PGEngine, PGVectorStore
 
 from bases import base_alchemy_pg_client
+from config import ai_config
+
+ai_config_ = ai_config.AIConfig()
 
 
 async def create_file_vector_store(
@@ -16,7 +19,7 @@ async def create_file_vector_store(
     """
 
     embeddings = OllamaEmbeddings(
-        model="mxbai-embed-large:latest",
+        model=ai_config_.embedding_model,
         base_url=ollama_url
     )
     engine = PGEngine.from_engine(engine=pg_client.engine)
@@ -49,7 +52,7 @@ async def create_insight_vector_store(
     """
 
     embeddings = OllamaEmbeddings(
-        model="mxbai-embed-large:latest",
+        model=ai_config_.embedding_model,
         base_url=ollama_url
     )
     engine = PGEngine.from_engine(engine=pg_client.engine)

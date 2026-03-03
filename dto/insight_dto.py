@@ -1,4 +1,3 @@
-import datetime
 import uuid
 
 from pydantic import BaseModel, Field
@@ -20,9 +19,6 @@ class Insight(BaseModel):
     )
     severity: const.InsightSeverity = Field(
         title="Insight severity",
-    )
-    created_at: datetime.datetime = Field(
-        title="Created at",
     )
     confidence: float = Field(
         title="Confidence score",

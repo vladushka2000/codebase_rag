@@ -43,7 +43,6 @@ class InsightsEmbedder(base_embedder.BaseEmbedder):
                     "insight_type": insight.insight_type,
                     "severity": insight.severity,
                     "chunk_index": i,
-                    "created_at": insight.created_at,
                     "confidence": insight.confidence,
                 }
             )

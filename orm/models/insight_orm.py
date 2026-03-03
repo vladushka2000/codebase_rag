@@ -1,8 +1,7 @@
-import datetime
 import uuid
 from typing import List, Optional
 
-from sqlalchemy import Text, DateTime, JSON, Enum as SA_Enum, Float, Index
+from sqlalchemy import Text, JSON, Enum as SA_Enum, Float, Index
 from sqlalchemy.dialects.postgresql import UUID, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -51,11 +50,6 @@ class InsightORM(base_model_orm.Base):
         ),
         nullable=False,
         comment="Insight severity"
-    )
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=datetime.datetime.now(datetime.UTC),
-        comment="Creation time"
     )
     confidence: Mapped[float] = mapped_column(
         Float,

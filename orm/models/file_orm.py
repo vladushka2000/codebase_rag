@@ -1,8 +1,7 @@
-import datetime
 import uuid
 from typing import Optional
 
-from sqlalchemy import UUID as SA_UUID, String, Float, Enum as SA_Enum, DateTime, Text, Index
+from sqlalchemy import UUID as SA_UUID, String, Float, Enum as SA_Enum, Text, Index
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -60,13 +59,6 @@ class FileORM(base_model_orm.Base):
             to_tsvector('{ai_config_.language}', {content})
         """,
         comment="Full-text search vector",
-    )
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=datetime.datetime.now(
-            datetime.UTC
-        ),
-        comment="Creation time",
     )
 
     __table_args__ = (

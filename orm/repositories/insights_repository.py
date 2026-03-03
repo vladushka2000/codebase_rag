@@ -1,4 +1,3 @@
-import datetime
 import uuid
 from typing import Optional, List
 
@@ -52,7 +51,6 @@ class InsightsRepository(
                     ],
                     insight_type=db_obj.insight_type,
                     severity=db_obj.severity,
-                    created_at=db_obj.created_at,
                     confidence=db_obj.confidence,
                 )
                 for db_obj in db_objs
@@ -77,7 +75,6 @@ class InsightsRepository(
                     content=insight.content,
                     insight_type=insight.insight_type.value,
                     severity=insight.severity.value,
-                    created_at=insight.created_at or datetime.datetime.now(datetime.UTC),
                     confidence=insight.confidence,
                 )
             )
@@ -98,7 +95,6 @@ class InsightsRepository(
                     content=db_obj.content,
                     insight_type=const.InsightType(db_obj.insight_type),
                     severity=const.InsightSeverity(db_obj.severity),
-                    created_at=db_obj.created_at,
                     confidence=db_obj.confidence,
                 )
                 for db_obj in db_objs
