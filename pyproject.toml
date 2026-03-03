@@ -16,7 +16,9 @@ dependencies = [
     "langchain (>=1.2.10,<2.0.0)",
     "langchain-postgres (>=0.0.17,<0.0.18)",
     "langchain-text-splitters (>=1.1.1,<2.0.0)",
-    "langchain-ollama (>=1.0.1,<2.0.0)"
+    "langchain-ollama (>=1.0.1,<2.0.0)",
+    "cocoindex (>=0.3.34,<0.4.0)",
+    "sentence-transformers (>=5.2.3,<6.0.0)"
 ]
 
 

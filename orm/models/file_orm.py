@@ -2,8 +2,7 @@ import datetime
 import uuid
 from typing import Optional
 
-from sqlalchemy import UUID as SA_UUID, String, Float, Enum as SA_Enum, DateTime, Text, Index
-from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy import UUID as SA_UUID, String, Float, Enum as SA_Enum, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from config import ai_config
@@ -27,12 +26,12 @@ class FileORM(base_model_orm.Base):
         comment="Id",
     )
     path: Mapped[Optional[str]] = mapped_column(
-        String(200),
+        Text,
         nullable=True,
         comment="Relative file path",
     )
     sha: Mapped[str] = mapped_column(
-        String(200),
+        Text,
         nullable=False,
         comment="File hash",
     )
@@ -53,26 +52,4 @@ class FileORM(base_model_orm.Base):
         Text,
         nullable=False,
         comment="File content",
-    )
-    search_vector: Mapped[Optional[str]] = mapped_column(
-        TSVECTOR,
-        server_default=f"""
-            to_tsvector('{ai_config_.language}', {content})
-        """,
-        comment="Full-text search vector",
-    )
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=datetime.datetime.now(
-            datetime.UTC
-        ),
-        comment="Creation time",
-    )
-
-    __table_args__ = (
-        Index(
-            "idx_files_search_vector",
-            "search_vector",
-            postgresql_using="gin"
-        ),
     )

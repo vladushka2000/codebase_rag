@@ -22,6 +22,19 @@ class AIConfig(BaseSettings):
         description="Ollama port",
     )
 
+    embedding_model: str = Field(
+        description="Embedding model",
+        default="Definity/snowflake-arctic-embed-l-v2.0-q8_0",
+    )
+    embedder_chunk_size: int = Field(
+        description="Embedder chunk size",
+        default=500,
+    )
+    embedder_chunk_overlap: int = Field(
+        description="Embedder chunk overlap",
+        default=50,
+    )
+
     @property
     def ollama_url(self) -> str:
         """

@@ -5,9 +5,11 @@ from typing import AsyncGenerator, List, Optional, Dict, Any
 
 import httpx
 
+from config import integration_config
 from dto import git_file_dto
 from utils import const
 
+integration_config_ = integration_config.IntegrationConfig()
 http_client_error = RuntimeError("Http client is not initialized")
 
 
@@ -18,9 +20,9 @@ class GitHubClient:
 
     def __init__(
         self,
-        repo: str,
-        repo_owner: str,
-        token: str,
+        repo: str = integration_config_.repo_name,
+        repo_owner: str = integration_config_.owner_name,
+        token: str = integration_config_.token,
         branch: Optional[str] = None,
     ) -> None:
         """
@@ -118,7 +120,7 @@ class GitHubClient:
                 sha=file_info["sha"],
                 size=file_info.get("size", 0),
                 type=file_type,
-                content=content
+                content=content,
             )
 
         except Exception as e:
