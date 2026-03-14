@@ -1,18 +1,17 @@
 import uuid
 from typing import Optional, List
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 
-from bases.orm_repositories import base_insights_repository
+from bases.repositories import base_insights_repository, base_alchemy_repository
 from dto import insight_dto
-from orm.models import insight_orm
-from orm.repositories import base_repository
+from db.orm_models import insight_orm
 from utils import const
 
 
 class InsightsRepository(
     base_insights_repository.BaseInsightsRepository,
-    base_repository.BaseAlchemyRepository
+    base_alchemy_repository.BaseAlchemyRepository
 ):
     """
     Repository for insight entity
@@ -46,9 +45,6 @@ class InsightsRepository(
                 insight_dto.InsightInDB(
                     id=db_obj.id,
                     content=db_obj.content,
-                    file_ids=[
-                        id_ for id_ in db_obj.file_ids
-                    ],
                     insight_type=db_obj.insight_type,
                     severity=db_obj.severity,
                     confidence=db_obj.confidence,
@@ -71,7 +67,6 @@ class InsightsRepository(
         for insight in insights:
             db_objs.append(
                 insight_orm.InsightORM(
-                    file_ids=[str(id_) for id_ in insight.file_ids],
                     content=insight.content,
                     insight_type=insight.insight_type.value,
                     severity=insight.severity.value,
@@ -91,7 +86,6 @@ class InsightsRepository(
             return [
                 insight_dto.InsightInDB(
                     id=db_obj.id,
-                    file_ids=[uuid.UUID(id_) for id_ in db_obj.file_ids],  # noqa
                     content=db_obj.content,
                     insight_type=const.InsightType(db_obj.insight_type),
                     severity=const.InsightSeverity(db_obj.severity),
@@ -99,3 +93,15 @@ class InsightsRepository(
                 )
                 for db_obj in db_objs
             ]
+
+    async def get_count(self) -> int:
+        """
+        Get count of all insights
+        :return: insights count
+        """
+
+        async with self.pg_client.session() as session:
+            query = select(func.count(insight_orm.InsightORM.id))
+            result = await session.execute(query)
+
+            return result.scalar()

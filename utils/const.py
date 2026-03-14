@@ -43,6 +43,18 @@ class InsightSeverity(enum.Enum):
     SUGGESTION = "suggestion"
 
 
+class ASTNodeType(enum.Enum):
+    """
+    Object types for python AST
+    """
+
+    MODULE = "module"
+    CLASS = "class"
+    FUNCTION = "function"
+    METHOD = "method"
+    VARIABLE = "variable"
+
+
 code_extensions = {
     ".py", ".go", ".cs", ".html", ".js", ".ts", ".sql"
 }

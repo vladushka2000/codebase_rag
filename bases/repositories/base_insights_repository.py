@@ -36,3 +36,12 @@ class BaseInsightsRepository(abc.ABC):
         """
 
         raise NotImplementedError
+
+    @abc.abstractmethod
+    async def get_count(self) -> int:
+        """
+        Get count of all insights
+        :return: insights count
+        """
+
+        raise NotImplementedError

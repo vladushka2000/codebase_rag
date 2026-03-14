@@ -7,8 +7,8 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from config import pg_config
-from orm.models import *  # noqa
-from orm.models import base_model_orm
+from db.orm_models import *  # noqa
+from db.orm_models import base_model_orm
 
 pg_config_ = pg_config.PostgresConfig()
 

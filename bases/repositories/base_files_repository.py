@@ -86,3 +86,18 @@ class BaseFilesRepository(abc.ABC):
         """
 
         raise NotImplementedError
+
+    @abc.abstractmethod
+    async def get_ids(
+        self,
+        file_type: Optional[const.FileType] = None,
+        extension: Optional[str] = None,
+    ) -> List[uuid.UUID]:
+        """
+        Get ids of all files
+        :param file_type: file type
+        :param extension: file extension
+        :return: list of ids
+        """
+
+        raise NotImplementedError

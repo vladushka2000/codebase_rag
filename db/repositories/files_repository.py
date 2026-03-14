@@ -4,16 +4,15 @@ from typing import Optional, List, Dict
 from sqlalchemy import update, select
 from sqlalchemy.sql.functions import func
 
-from bases.orm_repositories import base_files_repository
+from bases.repositories import base_files_repository, base_alchemy_repository
 from dto import git_file_dto
-from orm.models import file_orm
-from orm.repositories import base_repository
+from db.orm_models import file_orm
 from utils import const
 
 
 class FilesRepository(
     base_files_repository.BaseFilesRepository,
-    base_repository.BaseAlchemyRepository
+    base_alchemy_repository.BaseAlchemyRepository
 ):
     """
     Repository for files entity
@@ -111,6 +110,34 @@ class FilesRepository(
                 )
                 for db_obj in db_objs
             }
+
+    async def get_ids(
+        self,
+        file_type: Optional[const.FileType] = None,
+        extension: Optional[str] = None,
+    ) -> List[uuid.UUID]:
+        """
+        Get ids of all files
+        :param file_type: file type
+        :param extension: file extension
+        :return: list of ids
+        """
+
+        async with self.pg_client.session() as session:
+            query = select(file_orm.FileORM.id)
+
+            if file_type:
+                query = query.where(file_orm.FileORM.type == file_type)
+
+            if extension is not None:
+                extension = f".{extension}" if extension[0] != "." else extension
+                query = query.filter(
+                    file_orm.FileORM.path.ilike(f"%{extension}")
+                )
+
+            result = await session.execute(query)
+
+            return list(result.scalars().all())
 
     async def get_files_count(
         self,

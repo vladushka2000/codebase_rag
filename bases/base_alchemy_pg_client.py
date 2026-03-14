@@ -9,8 +9,10 @@ from sqlalchemy.ext.asyncio import (
     async_scoped_session
 )
 
+from bases import base_client
 
-class BaseAlchemyPGClient(abc.ABC):
+
+class BaseAlchemyPGClient(base_client.BaseClient):
     """
     Base SQLAlchemy Postgresql client
     """
@@ -49,7 +51,7 @@ class BaseAlchemyPGClient(abc.ABC):
         Init db connection
         """
 
-        raise NotImplementedError
+        await super().connect()
 
     @abc.abstractmethod
     async def disconnect(self) -> None:
@@ -57,7 +59,7 @@ class BaseAlchemyPGClient(abc.ABC):
         Close db connection
         """
 
-        raise NotImplementedError
+        await super().disconnect()
 
     @asynccontextmanager
     @abc.abstractmethod

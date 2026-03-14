@@ -22,13 +22,17 @@ class AIConfig(BaseSettings):
         description="Ollama port",
     )
 
+    llm: str = Field(
+        description="LLM name",
+        default="qwen3-coder-next:latest"
+    )
     embedding_model: str = Field(
         description="Embedding model",
-        default="mxbai-embed-large:latest",
+        default="qwen3-embedding:latest",
     )
     embedder_chunk_size: int = Field(
         description="Embedder chunk size",
-        default=500,
+        default=4096,
     )
     embedder_chunk_overlap: int = Field(
         description="Embedder chunk overlap",

@@ -1,6 +1,12 @@
 import abc
 
-from langchain_postgres import PGVectorStore
+from langchain_core.documents import Document
+from langchain_ollama import OllamaEmbeddings
+from langchain_qdrant import QdrantVectorStore
+
+from config import ai_config
+
+ai_config_ = ai_config.AIConfig()
 
 
 class BaseEmbedder(abc.ABC):
@@ -8,19 +14,17 @@ class BaseEmbedder(abc.ABC):
     Base embedder
     """
 
-    def __init__(
-        self,
-        vector_store: PGVectorStore,
-    ):
+    def __init__(self) -> None:
         """
         Init variables
-        :param vector_store: postgres vector store
         """
 
-        self.vector_store = vector_store
-        self.embeddings = vector_store.embeddings
-        self.engine = getattr(vector_store, "engine", None)
+        self.embeddings = OllamaEmbeddings(model=ai_config_.embedding_model)
 
     @abc.abstractmethod
-    async def embed(self, *args,**kwargs,) -> None:
+    def embed(
+        self,
+        files_to_embed: list[Document],
+        vector_store: QdrantVectorStore,
+    ) -> None:
         raise NotImplementedError
