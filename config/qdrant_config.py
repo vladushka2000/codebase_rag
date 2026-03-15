@@ -31,3 +31,7 @@ class QdrantConfig(BaseSettings):
         description="Insights collection name",
         default="insights",
     )
+    docs_collection: str = Field(
+        description="Documents collection name",
+        default="docs",
+    )

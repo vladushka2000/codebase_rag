@@ -96,11 +96,11 @@ class InsightAgent:
         """
 
         offset = 0
-        files_count = await self.files_repo.get_files_count(file_type=const.FileType.CODE)
+        files_count = await self.files_repo.get_files_count(file_types=[const.FileType.CODE])
 
         while offset < files_count:
             files = await self.files_repo.list(
-                file_type=const.FileType.CODE,
+                file_types=[const.FileType.CODE],
                 limit=self.batch_size,
                 offset=offset,
             )

@@ -141,12 +141,12 @@ class FilesRepository(
 
     async def get_files_count(
         self,
-        file_type: Optional[const.FileType] = None,
+        file_types: Optional[List[const.FileType]] = None,
         extension: Optional[str] = None,
     ) -> int:
         """
         Get number of files in DB
-        :param file_type: file type
+        :param file_types: file types
         :param extension: file extension
         :return: files count
         """
@@ -154,9 +154,9 @@ class FilesRepository(
         async with self.pg_client.session() as session:
             query = select(func.count(file_orm.FileORM.id))
 
-            if file_type is not None:
+            if file_types is not None:
                 query = query.filter(
-                    file_orm.FileORM.type == file_type
+                    file_orm.FileORM.type.in_(file_types)
                 )
 
             if extension is not None:
@@ -171,14 +171,14 @@ class FilesRepository(
 
     async def list(
         self,
-        file_type: Optional[const.FileType] = None,
+        file_types: Optional[List[const.FileType]] = None,
         extension: Optional[str] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
     ) -> List[git_file_dto.GitFileInDB]:
         """
         Get list of files
-        :param file_type: file type
+        :param file_types: file types
         :param extension: file extension
         :param limit: number of files to return
         :param offset: offset of files to return
@@ -188,9 +188,9 @@ class FilesRepository(
         async with self.pg_client.session() as session:
             query = select(file_orm.FileORM)
 
-            if file_type is not None:
+            if file_types is not None:
                 query = query.filter(
-                    file_orm.FileORM.type == file_type
+                    file_orm.FileORM.type.in_(file_types)
                 )
 
             if extension is not None:
