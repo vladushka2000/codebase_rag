@@ -68,3 +68,7 @@ class CollectionPriority(enum.Enum):
 code_extensions = {
     ".py", ".go", ".cs", ".html", ".js", ".ts", ".sql"
 }
+
+MIN_FILE_VALID_SCORE = 0.8
+MAX_POTENTIAL_ENTRYPOINTS_COUNT = 10
+ENTRYPOINT_IMPORTS_COUNT = 3

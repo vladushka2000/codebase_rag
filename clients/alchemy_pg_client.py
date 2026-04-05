@@ -1,4 +1,3 @@
-import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -6,8 +5,7 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
     AsyncEngine,
     create_async_engine,
-    async_sessionmaker,
-    async_scoped_session
+    async_sessionmaker
 )
 
 from bases import base_alchemy_pg_client
@@ -45,11 +43,6 @@ class AlchemyPGClient(base_alchemy_pg_client.BaseAlchemyPGClient):
             autoflush=False
         )
 
-        self._scoped_session = async_scoped_session(
-            self._session_factory,
-            scopefunc=asyncio.current_task
-        )
-
     async def disconnect(self) -> None:
         """
         Close db connection
@@ -57,10 +50,6 @@ class AlchemyPGClient(base_alchemy_pg_client.BaseAlchemyPGClient):
 
         if self._engine is None:
             return
-
-        if self._scoped_session is not None:
-            await self._scoped_session.close()
-            self._scoped_session = None
 
         await self._engine.dispose()
         self._engine = None
@@ -79,8 +68,6 @@ class AlchemyPGClient(base_alchemy_pg_client.BaseAlchemyPGClient):
         async with self._session_factory() as session:
             try:
                 yield session
-            except Exception:
-                await session.rollback()
-                raise
             finally:
+                await session.rollback()
                 await session.close()

@@ -9,9 +9,10 @@ class InputPrompt(BaseModel):
     prompt: str
 
 
-class SimpleAnswer(BaseModel):
+class RAGAnswer(BaseModel):
     """
-    Simple LLM answer
+    RAG-system answer
     """
 
     answer: str
+    used_paths: list[str]

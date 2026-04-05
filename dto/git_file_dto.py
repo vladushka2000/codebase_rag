@@ -48,3 +48,12 @@ class GitFileInDB(GitFile):
     """
 
     id: uuid.UUID = Field(title="Id in DB")
+
+
+class GitFileSnippet(BaseModel):
+    """
+    Git file snippet
+    """
+
+    content: str = Field(title="Chunk of file's content")
+    path: str = Field(title="File path")

@@ -44,6 +44,7 @@ class BaseFilesRepository(abc.ABC):
         self,
         file_types: Optional[List[const.FileType]] = None,
         extension: Optional[str] = None,
+        paths: Optional[List[str]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
     ) -> List[git_file_dto.GitFileInDB]:
@@ -51,6 +52,7 @@ class BaseFilesRepository(abc.ABC):
         Get list of files
         :param file_types: file types
         :param extension: file extension
+        :param paths: file paths
         :param limit: number of files to return
         :param offset: offset of files to return
         :return: files

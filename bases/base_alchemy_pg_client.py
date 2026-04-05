@@ -5,8 +5,7 @@ from typing import Optional, AsyncGenerator
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     AsyncEngine,
-    async_sessionmaker,
-    async_scoped_session
+    async_sessionmaker
 )
 
 from bases import base_db_client
@@ -39,7 +38,6 @@ class BaseAlchemyPGClient(base_db_client.BaseDBClient):
 
         self._engine: Optional[AsyncEngine] = None
         self._session_factory: Optional[async_sessionmaker[AsyncSession]] = None
-        self._scoped_session: Optional[async_scoped_session] = None
 
     @property
     def engine(self) -> AsyncEngine:

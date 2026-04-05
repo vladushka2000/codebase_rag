@@ -1,4 +1,3 @@
-import asyncio
 import uuid
 from typing import Optional, List, Dict
 
@@ -177,6 +176,7 @@ class FilesRepository(
         self,
         file_types: Optional[List[const.FileType]] = None,
         extension: Optional[str] = None,
+        paths: Optional[List[str]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
     ) -> List[git_file_dto.GitFileInDB]:
@@ -184,6 +184,7 @@ class FilesRepository(
         Get list of files
         :param file_types: file types
         :param extension: file extension
+        :param paths: file paths
         :param limit: number of files to return
         :param offset: offset of files to return
         :return: files
@@ -201,6 +202,11 @@ class FilesRepository(
                 extension = f".{extension}" if extension[0] != "." else extension
                 query = query.filter(
                     file_orm.FileORM.path.ilike(f"%{extension}")
+                )
+
+            if paths is not None:
+                query = query.filter(
+                    file_orm.FileORM.path.in_(paths)
                 )
 
             if limit is not None:
@@ -250,10 +256,10 @@ class FilesRepository(
         """
 
         async with self.pg_client.session() as session:
-            tsquery = search_query.replace(" ", " & ")
             query_vector = select(file_orm.FileORM).where(
-                file_orm.FileORM.search_vector.op("@@")(func.to_tsquery(tsquery))
+                file_orm.FileORM.search_vector.op("@@")(func.websearch_to_tsquery('russian', search_query))
             )
+
             query_trigram = select(file_orm.FileORM).where(
                 func.similarity(file_orm.FileORM.content, search_query) > pg_config_.gin_search_score
             )
@@ -266,10 +272,8 @@ class FilesRepository(
                     ext = f".{extension}" if extension[0] != "." else extension
                     query = query.filter(file_orm.FileORM.path.ilike(f"%{ext}"))
 
-            vector_result, trigram_result = await asyncio.gather(
-                session.execute(query_vector),
-                session.execute(query_trigram)
-            )
+            vector_result = await session.execute(query_vector)
+            trigram_result = await session.execute(query_trigram)
 
             files_dict = {}
 

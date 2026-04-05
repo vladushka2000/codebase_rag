@@ -47,7 +47,7 @@ async def main():
     builder = StateGraph(
         runtime_states.GraphState,
         input_schema=start_and_final_states.InputPrompt,
-        output_schema=start_and_final_states.SimpleAnswer,
+        output_schema=start_and_final_states.RAGAnswer,
         context_schema=runtime_states.RuntimeContext,
     )
 
@@ -55,6 +55,10 @@ async def main():
     builder.add_node("simple_answer", rag_answer.get_simple_answer)
     builder.add_node("qdrant_finder", qdrant_finder.get_context_from_qdrant)
     builder.add_node("files_entrypoints_finder", files_entrypoints_finder.get_possible_entrypoints)
+    builder.add_node("files_checkpoint", lambda state: state)
+    builder.add_node("check_file", files_entrypoints_finder.check_file)
+    builder.add_node("gather_context", lambda state: state)
+    builder.add_node("context_answer", rag_answer.get_answer_from_context)
 
     builder.add_conditional_edges(
         START,
@@ -64,12 +68,23 @@ async def main():
     builder.add_edge("simple_answer", END)
 
     builder.add_edge("prompt_enhancer", "qdrant_finder")
-    builder.add_edge("prompt_enhancer", "files_entrypoints_finder")
+    builder.add_edge("qdrant_finder", "files_entrypoints_finder")
+    builder.add_edge("files_entrypoints_finder", "files_checkpoint")
+    builder.add_conditional_edges(
+        "files_checkpoint",
+        files_entrypoints_finder.check_if_files_left,
+        {True: "check_file", False: "gather_context"}
+    )
+    builder.add_edge("check_file", "files_checkpoint")
+
+    builder.add_edge(["qdrant_finder", "gather_context"], "context_answer")
+    builder.add_edge("context_answer", END)
 
     graph = builder.compile()
     result = await graph.ainvoke(
-        input=start_and_final_states.InputPrompt(prompt="Где находятся апихи и роуты?"),
+        input=start_and_final_states.InputPrompt(prompt="Есть ли в проекте cors-мидлваря?"),
         context=runtime_context,
+        config={"recursion_limit": 100},
     )
     print(result["answer"])
 

@@ -58,7 +58,7 @@ async def is_rag_required(
 async def enhance_prompt(
     state: start_and_final_states.InputPrompt,
     runtime: Runtime[runtime_states.RuntimeContext],
-) -> start_and_final_states.SimpleAnswer:
+) -> start_and_final_states.InputPrompt:
     """
     Enhance user's prompt with additional info
     :param state: current state
@@ -81,4 +81,4 @@ async def enhance_prompt(
 
     logger.info("Enhanced prompt: %s", enhanced)
 
-    return start_and_final_states.SimpleAnswer(answer=enhanced)
+    return start_and_final_states.InputPrompt(prompt=enhanced)
