@@ -9,10 +9,10 @@ from sqlalchemy.ext.asyncio import (
     async_scoped_session
 )
 
-from bases import base_client
+from bases import base_db_client
 
 
-class BaseAlchemyPGClient(base_client.BaseClient):
+class BaseAlchemyPGClient(base_db_client.BaseDBClient):
     """
     Base SQLAlchemy Postgresql client
     """

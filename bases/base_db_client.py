@@ -1,9 +1,9 @@
 import abc
 
 
-class BaseClient(abc.ABC):
+class BaseDBClient(abc.ABC):
     """
-    Base client
+    Base database client
     """
 
     @abc.abstractmethod

@@ -1,3 +1,5 @@
+import textwrap
+
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
@@ -26,6 +28,11 @@ class AIConfig(BaseSettings):
         description="LLM name",
         default="qwen3-coder-next:latest"
     )
+    llm_temp: float = Field(
+        description="LLM temperature",
+        default=0.7
+    )
+
     embedding_model: str = Field(
         description="Embedding model",
         default="qwen3-embedding:latest",
@@ -47,3 +54,59 @@ class AIConfig(BaseSettings):
         """
 
         return f"http://{self.ollama_host}:{self.ollama_port}"
+
+    @property
+    def rag_sys_message(self) -> str:
+        """
+        Get RAG system message
+        :return: RAG system message
+        """
+
+        sys_message = f"""
+            You are a RAG assistant answering questions based ONLY on the provided context.
+            Answer in {self.language.value}"
+            """
+
+        return textwrap.dedent(sys_message)
+
+    @property
+    def prompt_preprocessor_sys_message(self) -> str:
+        """
+        Get prompt preprocessor system message
+        :return: prompt preprocessor system message
+        """
+
+        sys_message = """
+        You are an intelligent query preprocessor for a RAG system working with a codebase.
+        Your task: take the user's original query and return an enhanced version of that query, adding explanations in parentheses for informal, transliterated, or slang terms, especially those from software development.
+        Rules:
+        Do not answer the user's question. Only transform the query.
+        If the user uses transliterated Russian terms (e.g., "мидлваря", "прод", "деплой", "апишка"), add the English equivalent in parentheses.
+        If a term could be ambiguous — add a brief clarification from the development context.
+        Do not remove or rewrite the user's original words — only add to them.
+        If the query already contains the correct English term, do not duplicate it.
+        Preserve the original style and word order.
+        Examples:
+        User: "как работает мидлваря в этом проекте"
+        You: "как работает мидлваря (middleware) в этом проекте"
+        
+        User: "найди апишку для юзеров"
+        You: "найди апишку (API) для юзеров"
+        
+        User: "где конфиг для прод среды"
+        You: "где конфиг для прод среды (production environment)"
+        
+        User: "как задеплоить через докер"
+        You: "как задеплоить (deploy) через докер (Docker)"
+        
+        User: "эксепшены в контроллере"
+        You: "эксепшены (exceptions) в контроллере (controller)"
+        
+        User: "репозиторий для ордеров"
+        You: "репозиторий (repository) для ордеров (orders)"
+        
+        If a term needs no explanation — leave it as is.
+        Your response must contain only the enhanced query, without any extra comments.
+        """
+
+        return textwrap.dedent(sys_message)

@@ -4,10 +4,10 @@ from typing import Optional, Generator
 
 from qdrant_client import QdrantClient
 
-from bases import base_client
+from bases import base_db_client
 
 
-class BaseQdrantClient(base_client.BaseClient):
+class BaseQdrantClient(base_db_client.BaseDBClient):
     """
     Base qdrant client
     """
