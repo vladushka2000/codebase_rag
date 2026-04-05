@@ -35,3 +35,12 @@ class QdrantConfig(BaseSettings):
         description="Documents collection name",
         default="docs",
     )
+
+    max_results: int = Field(
+        default=50,
+        description="Maximum number of search results per collection",
+    )
+    score_threshold: float = Field(
+        default=0.7,
+        description="Minimum similarity score threshold",
+    )

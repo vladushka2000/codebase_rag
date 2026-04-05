@@ -1,5 +1,5 @@
 from dependency_injector import containers, providers
-from langchain_ollama import ChatOllama
+from langchain_ollama import ChatOllama, OllamaEmbeddings
 
 from clients import alchemy_pg_client, qdrant_client
 from config import ai_config, pg_config
@@ -18,6 +18,11 @@ class ClientContainer(containers.DeclarativeContainer):
         model=ai_config_.llm,
         base_url=ai_config_.ollama_url,
         temperature=ai_config_.llm_temp,
+    )
+    ollama_embeddings = providers.Singleton(
+        OllamaEmbeddings,
+        model=ai_config_.embedding_model,
+        base_url=ai_config_.ollama_url,
     )
     qdrant_client = providers.Singleton(
         qdrant_client.QdrantClient,
