@@ -23,10 +23,6 @@ class QdrantConfig(BaseSettings):
         default=6334,
     )
 
-    ast_collection_python: str = Field(
-        description="Python AST collection name",
-        default="ast_python",
-    )
     insights_collection: str = Field(
         description="Insights collection name",
         default="insights",

@@ -2,6 +2,8 @@ from typing import Dict, Any
 
 from pydantic import BaseModel, Field
 
+from dto import git_file_dto
+
 
 class VectorStoreSearchResult(BaseModel):
     """
@@ -19,3 +21,12 @@ class VectorStoreSearchResults(BaseModel):
     """
 
     results: list[VectorStoreSearchResult] = Field(description="Search results")
+
+
+class PossibleFilesEntrypoints(BaseModel):
+    """
+    Possible entrypoints
+    """
+
+    files: list[git_file_dto.GitFileInDB] = Field(description="List of paths")
+    paths_list: list[str] = Field(description="List of all code paths")

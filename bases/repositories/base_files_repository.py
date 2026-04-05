@@ -101,3 +101,21 @@ class BaseFilesRepository(abc.ABC):
         """
 
         raise NotImplementedError
+
+    @abc.abstractmethod
+    async def search(
+        self,
+        search_query: str,
+        file_types: Optional[List[const.FileType]] = None,
+        extension: Optional[str] = None,
+    ) -> List[git_file_dto.GitFileInDB]:
+        """
+        Search files using both full-text search (TSVECTOR) and trigram search (GIN index).
+        Results are combined and duplicates are removed.
+        :param search_query: search query string
+        :param file_types: filter by file types
+        :param extension: filter by file extension
+        :return: list of matching files without duplicates
+        """
+
+        raise NotImplementedError

@@ -38,6 +38,11 @@ class PostgresConfig(BaseSettings):
         default=10,
     )
 
+    gin_search_score: float = Field(
+        default=0.3,
+        description="GIN index search score",
+    )
+
     @property
     def postgres_dsn(self) -> PostgresDsn:
         """

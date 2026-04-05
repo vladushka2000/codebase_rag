@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from typing import Optional, List, Dict
 
@@ -5,9 +6,12 @@ from sqlalchemy import update, select
 from sqlalchemy.sql.functions import func
 
 from bases.repositories import base_files_repository, base_alchemy_repository
-from dto import git_file_dto
+from config import pg_config
 from db.orm_models import file_orm
+from dto import git_file_dto
 from utils import const
+
+pg_config_ = pg_config.PostgresConfig()
 
 
 class FilesRepository(
@@ -229,3 +233,60 @@ class FilesRepository(
         async with self.pg_client.session() as session:
             await session.execute(update(file_orm.FileORM), objs_in)
             await session.commit()
+
+    async def search(
+        self,
+        search_query: str,
+        file_types: Optional[List[const.FileType]] = None,
+        extension: Optional[str] = None,
+    ) -> List[git_file_dto.GitFileInDB]:
+        """
+        Search files using both full-text search (TSVECTOR) and trigram search (GIN index).
+        Results are combined and duplicates are removed.
+        :param search_query: search query string
+        :param file_types: filter by file types
+        :param extension: filter by file extension
+        :return: list of matching files without duplicates
+        """
+
+        async with self.pg_client.session() as session:
+            tsquery = search_query.replace(" ", " & ")
+            query_vector = select(file_orm.FileORM).where(
+                file_orm.FileORM.search_vector.op("@@")(func.to_tsquery(tsquery))
+            )
+            query_trigram = select(file_orm.FileORM).where(
+                func.similarity(file_orm.FileORM.content, search_query) > pg_config_.gin_search_score
+            )
+
+            for query in [query_vector, query_trigram]:
+                if file_types is not None:
+                    query = query.filter(file_orm.FileORM.type.in_(file_types))
+
+                if extension is not None:
+                    ext = f".{extension}" if extension[0] != "." else extension
+                    query = query.filter(file_orm.FileORM.path.ilike(f"%{ext}"))
+
+            vector_result, trigram_result = await asyncio.gather(
+                session.execute(query_vector),
+                session.execute(query_trigram)
+            )
+
+            files_dict = {}
+
+            for db_obj in vector_result.scalars().all():
+                files_dict[db_obj.id] = db_obj
+
+            for db_obj in trigram_result.scalars().all():
+                files_dict[db_obj.id] = db_obj
+
+            return [
+                git_file_dto.GitFileInDB(
+                    id=db_obj.id,
+                    path=db_obj.path,
+                    sha=db_obj.sha,
+                    size=db_obj.size_bytes,
+                    type=db_obj.type,
+                    content=db_obj.content,
+                )
+                for db_obj in files_dict.values()
+            ]

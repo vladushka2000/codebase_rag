@@ -1,22 +1,26 @@
+from logging import getLogger
 from langgraph.runtime import Runtime
 
 from config import qdrant_config
 from factories import vector_store_factories
-from rag_states import runtime_states, start_and_final_states, vector_store_states
+from rag_states import runtime_states, search_states, start_and_final_states
 
 qdrant_config_ = qdrant_config.QdrantConfig()
+logger = getLogger(__name__)
 
 
 def get_context_from_qdrant(
     state: start_and_final_states.InputPrompt,
     runtime: Runtime[runtime_states.RuntimeContext],
-) -> vector_store_states.VectorStoreSearchResults:
+) -> search_states.VectorStoreSearchResults:
     """
     Get qdrant data from the collections based on user's input
     :param state: current state
     :param runtime: runtime context
     :return: found qdrant data
     """
+
+    logger.info("Getting context from qdrant...")
 
     vector_stores = {
         qdrant_config_.insights_collection: vector_store_factories.create_vector_store(
@@ -30,7 +34,7 @@ def get_context_from_qdrant(
             collection_name=qdrant_config_.docs_collection,
         ),
     }
-    result = vector_store_states.VectorStoreSearchResults(results=[])
+    result = search_states.VectorStoreSearchResults(results=[])
 
     for store_name, store in vector_stores.items():
         docs_with_scores = store.similarity_search_with_score(
@@ -41,7 +45,7 @@ def get_context_from_qdrant(
 
         for doc, score in docs_with_scores:
             result.results.append(
-                vector_store_states.VectorStoreSearchResult(
+                search_states.VectorStoreSearchResult(
                     text=doc.page_content,
                     score=score,
                     metadata=doc.metadata,
@@ -50,5 +54,15 @@ def get_context_from_qdrant(
 
         result.results.sort(key=lambda r: r.score, reverse=True)
         result.results = result.results[:10]
+
+    logger.info(
+        "Qdrant context:\n%s",
+        "\n".join(
+            ["Text: '{text}'. Score: {score}".format(
+                text=el.text[:50],
+                score=el.score
+            ) for el in result.results]
+        )
+    )
 
     return result
