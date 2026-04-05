@@ -1,7 +1,8 @@
 import uuid
 from typing import Optional
 
-from sqlalchemy import UUID as SA_UUID, String, Float, Enum as SA_Enum, Text
+from sqlalchemy import UUID as SA_UUID, String, Float, Enum as SA_Enum, Text, Index, func
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from config import ai_config
@@ -51,4 +52,16 @@ class FileORM(base_model_orm.Base):
         Text,
         nullable=False,
         comment="File content",
+    )
+
+    search_vector: Mapped[Optional[str]] = mapped_column(TSVECTOR, nullable=True)
+
+    __table_args__ = (
+        Index("ix_files_search_vector", "search_vector", postgresql_using="gin"),
+        Index(
+            "ix_files_content_trgm",
+            "content",
+            postgresql_using="gin",
+            postgresql_ops={"content": "gin_trgm_ops"}
+        ),
     )
