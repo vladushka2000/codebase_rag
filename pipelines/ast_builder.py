@@ -4,7 +4,7 @@ from typing import List
 from ast_builders import ast_builder_python
 from config import pg_config
 from db.repositories import ast_nodes_repository, files_repository
-from db_clients import alchemy_pg_client
+from clients import alchemy_pg_client
 from dto import ast_node_dto
 from utils import const
 

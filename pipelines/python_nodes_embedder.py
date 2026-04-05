@@ -9,7 +9,7 @@ from qdrant_client.http.models import VectorParams, Distance
 from bases.repositories import base_ast_nodes_repository
 from config import ai_config, pg_config, qdrant_config
 from db.repositories import ast_nodes_repository, qdrant_repository
-from db_clients import alchemy_pg_client, qdrant_client
+from clients import alchemy_pg_client, qdrant_client
 from dto import ast_node_dto
 from factories import vector_store_factories
 

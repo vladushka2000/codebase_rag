@@ -1,4 +1,4 @@
-from db_clients import alchemy_pg_client
+from clients import alchemy_pg_client
 
 
 class BaseAlchemyRepository:

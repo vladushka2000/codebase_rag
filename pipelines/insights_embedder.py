@@ -6,63 +6,61 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from qdrant_client.http.models import VectorParams, Distance
 
-from bases.repositories import base_files_repository
+from bases.repositories import base_insights_repository
 from config import ai_config, pg_config, qdrant_config
-from db.repositories import files_repository, qdrant_repository
-from db_clients import alchemy_pg_client, qdrant_client
-from dto import git_file_dto
+from db.repositories import insights_repository, qdrant_repository
+from clients import alchemy_pg_client, qdrant_client
+from dto import insight_dto
 from factories import vector_store_factories
-from utils import const
 
 ai_config_ = ai_config.AIConfig()
 pg_config_ = pg_config.PostgresConfig()
 qdrant_config_ = qdrant_config.QdrantConfig()
 
 
-async def _get_docs(
-    repo: base_files_repository.BaseFilesRepository,
+async def _get_insights(
+    repo: base_insights_repository.BaseInsightsRepository,
     limit: int,
 ) -> AsyncGenerator[
-    list[git_file_dto.GitFileInDB],
+    list[insight_dto.InsightInDB],
 ]:
     """
-    Get docs from DB
-    :param repo: files repository
-    :return: list of docs
+    Get insights from DB
+    :param repo: insight repository
+    :return: list of insights
     """
 
     offset = 0
-    docs_count = await repo.get_files_count(file_types=[const.FileType.DOC, const.FileType.UNKNOWN])
+    insights_count = await repo.get_count()
 
-    while offset < docs_count:
-        nodes = await repo.list(
-            file_types=[const.FileType.DOC, const.FileType.UNKNOWN],
+    while offset < insights_count:
+        insights = await repo.list(
             limit=limit,
             offset=offset,
         )
         offset += limit
 
-        yield nodes
+        yield insights
 
 
-def _split_doc(
+def _split_insight(
     splitter: RecursiveCharacterTextSplitter,
-    doc: git_file_dto.GitFileInDB,
+    insight: insight_dto.InsightInDB,
     chunk_size: int,
 ) -> list[Document]:
     """
-    Split doc by chunks
+    Split insight by chunks
     :param splitter: text splitter
-    :param doc: file object
+    :param insight: insight data
     :param chunk_size: chunk size
     :return: chunks
     """
 
-    if len(doc.content) <= chunk_size:
-        doc_dict = doc.to_embedding_document(
+    if len(insight.content) <= chunk_size:
+        doc_dict = insight.to_embedding_document(
             chunk_index=0,
             total_chunks=1,
-            chunk_content=doc.content,
+            chunk_content=insight.content,
         )
 
         return [
@@ -72,27 +70,27 @@ def _split_doc(
             )
         ]
 
-    chunks = splitter.split_text(doc.content)
+    chunks = splitter.split_text(insight.content)
     documents = []
 
     for i, chunk in enumerate(chunks):
-        doc_dict = doc.to_embedding_document(
+        doc_dict = insight.to_embedding_document(
             chunk_index=i,
             total_chunks=len(chunks),
             chunk_content=chunk
         )
-        document = Document(
+        doc = Document(
             page_content=doc_dict["text"],
             metadata=doc_dict["metadata"]
         )
-        documents.append(document)
+        documents.append(doc)
 
     return documents
 
 
-async def embed_docs() -> None:
+async def embed_insights() -> None:
     """
-    Embed all docs
+    Embed all insights
     """
 
     pg_client = alchemy_pg_client.AlchemyPGClient(
@@ -103,12 +101,12 @@ async def embed_docs() -> None:
     await pg_client.connect()
     qdrant_client_.connect()
 
-    files_repo = files_repository.FilesRepository(pg_client)
+    insights_repo = insights_repository.InsightsRepository(pg_client)
     qdrant_repo = qdrant_repository.QdrantRepository(qdrant_client_)
 
-    if not qdrant_repo.is_collection_exists(qdrant_config_.docs_collection):
+    if not qdrant_repo.is_collection_exists(qdrant_config_.insights_collection):
         qdrant_repo.create_collection(
-            qdrant_config_.docs_collection,
+            qdrant_config_.insights_collection,
             VectorParams(
                 size=ai_config_.embedder_chunk_size,
                 distance=Distance.COSINE,
@@ -119,29 +117,29 @@ async def embed_docs() -> None:
         model=ai_config_.embedding_model,
         base_url=ai_config_.ollama_url
     )
-    text_splitter = RecursiveCharacterTextSplitter(
+    splitter = RecursiveCharacterTextSplitter(
         chunk_size=ai_config_.embedder_chunk_size,
         chunk_overlap=ai_config_.embedder_chunk_overlap,
     )
-    docs_vector_store = vector_store_factories.create_vector_store(
+    insights_vector_store = vector_store_factories.create_vector_store(
         qdrant_client=qdrant_client_.client,
         embeddings=embedder,
-        collection_name=qdrant_config_.docs_collection,
+        collection_name=qdrant_config_.insights_collection,
     )
 
-    async for documents in _get_docs(repo=files_repo, limit=50):
-        for doc in documents:
-            chunks = _split_doc(
-                splitter=text_splitter,
-                doc=doc,
+    async for insights in _get_insights(repo=insights_repo, limit=50):
+        for insight in insights:
+            chunks = _split_insight(
+                splitter=splitter,
+                insight=insight,
                 chunk_size=ai_config_.embedder_chunk_size,
             )
-            docs_vector_store.add_documents(chunks)
+            insights_vector_store.add_documents(chunks)
 
     await pg_client.disconnect()
     qdrant_client_.disconnect()
-    docs_vector_store.client.close()
+    insights_vector_store.client.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(embed_docs())
+    asyncio.run(embed_insights())

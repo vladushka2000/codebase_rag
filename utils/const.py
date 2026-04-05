@@ -55,6 +55,16 @@ class ASTNodeType(enum.Enum):
     VARIABLE = "variable"
 
 
+class CollectionPriority(enum.Enum):
+    """
+    Collection priority levels
+    """
+
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+
 code_extensions = {
     ".py", ".go", ".cs", ".html", ".js", ".ts", ".sql"
 }

@@ -12,7 +12,7 @@ from qdrant_client.http.models import Filter, FieldCondition, MatchValue
 from bases.repositories import base_files_repository, base_insights_repository
 from config import ai_config, pg_config, qdrant_config
 from db.repositories import files_repository, insights_repository
-from db_clients import alchemy_pg_client, qdrant_client
+from clients import alchemy_pg_client, qdrant_client
 from dto import git_file_dto, insight_dto
 from factories import vector_store_factories
 from utils import const

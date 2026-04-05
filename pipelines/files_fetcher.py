@@ -2,7 +2,7 @@ import asyncio
 
 from config import pg_config
 from db.repositories import files_repository
-from db_clients import alchemy_pg_client
+from clients import alchemy_pg_client
 from git_clients import github_client
 
 pg_config_ = pg_config.PostgresConfig()
