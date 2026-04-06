@@ -14,6 +14,7 @@ class PossibleFilesEntrypoints(BaseModel):
     valid_snippets: dict[str, git_file_dto.GitFileSnippet] = Field(
         description="Map of valid code snippets. Key - path, value - file data"
     )
+    recursion_depth: int = Field(description="Current recursion depth", default=1)
 
     def get_list_of_snippets(self) -> str:
         """

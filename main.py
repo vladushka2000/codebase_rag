@@ -13,8 +13,11 @@ from ai_tools import (
 )
 from di_containers import client_container, repositories_container
 from rag_states import runtime_states, start_and_final_states
+from utils import tools
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 client_container_ = client_container.ClientContainer()
 repositories_container_ = repositories_container.RepositoryContainer(
     db_dependency=providers.DependenciesContainer(pg_client=client_container_.pg_client)
@@ -82,11 +85,12 @@ async def main():
 
     graph = builder.compile()
     result = await graph.ainvoke(
-        input=start_and_final_states.InputPrompt(prompt="Есть ли в проекте cors-мидлваря?"),
+        input=start_and_final_states.InputPrompt(prompt="Ведется ли в проекте рефактор?", key_words=[]),
         context=runtime_context,
-        config={"recursion_limit": 20},
+        config={"recursion_limit": int(tools.get_max_path_depth(graph) * 10)},
     )
-    print(result["answer"])
+
+    logger.info("Result:\n%s", result["answer"])
 
     qdrant_client.disconnect()
     await pg_client.disconnect()

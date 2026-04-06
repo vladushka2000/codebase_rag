@@ -7,6 +7,7 @@ class InputPrompt(BaseModel):
     """
 
     prompt: str
+    key_words: list[str]
 
 
 class RAGAnswer(BaseModel):

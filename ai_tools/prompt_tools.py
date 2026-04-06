@@ -77,8 +77,9 @@ async def enhance_prompt(
 
     ollama_client = runtime.context.ollama_client
     response = await ollama_client.ainvoke([system_message, user_message])
-    enhanced = response.content
+    key_words = response.content
+    key_words = set(key_words.split())
 
-    logger.info("Enhanced prompt: %s", enhanced)
+    logger.info("Prompt key-words: %s", " ".join(key_words))
 
-    return start_and_final_states.InputPrompt(prompt=enhanced)
+    return start_and_final_states.InputPrompt(prompt=state.prompt, key_words=list(key_words))

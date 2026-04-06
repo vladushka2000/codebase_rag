@@ -1,4 +1,5 @@
 import asyncio
+from logging import getLogger
 from typing import AsyncGenerator
 
 from langchain_core.documents import Document
@@ -17,6 +18,8 @@ from utils import const
 ai_config_ = ai_config.AIConfig()
 pg_config_ = pg_config.PostgresConfig()
 qdrant_config_ = qdrant_config.QdrantConfig()
+
+logger = getLogger(__name__)
 
 
 async def _get_docs(
@@ -95,6 +98,8 @@ async def embed_docs() -> None:
     Embed all docs
     """
 
+    logger.info("Embedding all docs...")
+
     pg_client = alchemy_pg_client.AlchemyPGClient(
         database_url=str(pg_config_.postgres_dsn),
     )
@@ -131,12 +136,16 @@ async def embed_docs() -> None:
 
     async for documents in _get_docs(repo=files_repo, limit=50):
         for doc in documents:
+            logger.info("Splitting %s", doc.path)
+
             chunks = _split_doc(
                 splitter=text_splitter,
                 doc=doc,
                 chunk_size=ai_config_.embedder_chunk_size,
             )
             docs_vector_store.add_documents(chunks)
+
+            logger.info("%s added to vector store", doc.path)
 
     await pg_client.disconnect()
     qdrant_client_.disconnect()

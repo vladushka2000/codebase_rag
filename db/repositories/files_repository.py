@@ -262,20 +262,20 @@ class FilesRepository(
             for word in words:
                 tsquery_parts.append(f"{word}:*")
 
-            tsquery_str = ' | '.join(tsquery_parts)
+            tsquery_str = " | ".join(tsquery_parts)
 
             query_vector = select(
                 file_orm.FileORM,
                 func.ts_rank(
                     file_orm.FileORM.search_vector,
-                    func.to_tsquery('simple', tsquery_str)
-                ).label('relevance')
+                    func.to_tsquery("simple", tsquery_str)
+                ).label("relevance")
             ).where(
-                file_orm.FileORM.search_vector.op("@@")(func.to_tsquery('simple', tsquery_str))
+                file_orm.FileORM.search_vector.op("@@")(func.to_tsquery("simple", tsquery_str))
             ).order_by(
                 func.ts_rank(
                     file_orm.FileORM.search_vector,
-                    func.to_tsquery('simple', tsquery_str)
+                    func.to_tsquery("simple", tsquery_str)
                 ).desc()
             )
 
@@ -286,14 +286,14 @@ class FilesRepository(
 
                 query_trigram = select(
                     file_orm.FileORM,
-                    trigram_score.label('relevance')
+                    trigram_score.label("relevance")
                 ).where(
-                    trigram_score > pg_config_.gin_search_score
+                    trigram_score > pg_config_.search_score
                 ).order_by(
                     trigram_score.desc()
                 )
             else:
-                query_trigram = select(file_orm.FileORM, func.literal(0.0).label('relevance')).where(False)  # noqa
+                query_trigram = select(file_orm.FileORM, func.literal(0.0).label("relevance")).where(False)  # noqa
 
             for query in [query_vector, query_trigram]:
                 if file_types is not None:
@@ -306,21 +306,16 @@ class FilesRepository(
             vector_result = await session.execute(query_vector)
             trigram_result = await session.execute(query_trigram)
 
-            files_with_score = {}
+            # Key - file id, value - file data
+            files = {}
 
             for db_obj, relevance in vector_result:
-                if db_obj.id not in files_with_score or relevance > files_with_score[db_obj.id][1]:
-                    files_with_score[db_obj.id] = (db_obj, relevance)
+                if db_obj.id not in files and relevance > pg_config_.search_score:
+                    files[db_obj.id] = (db_obj, relevance)
 
             for db_obj, relevance in trigram_result:
-                if db_obj.id not in files_with_score or relevance > files_with_score[db_obj.id][1]:
-                    files_with_score[db_obj.id] = (db_obj, relevance)
-
-            sorted_files = sorted(
-                files_with_score.values(),
-                key=lambda x: x[1],
-                reverse=True
-            )
+                if db_obj.id not in files and relevance > pg_config_.search_score:
+                    files[db_obj.id] = (db_obj, relevance)
 
             return [
                 git_file_dto.GitFileInDB(
@@ -331,5 +326,5 @@ class FilesRepository(
                     type=db_obj.type,
                     content=db_obj.content,
                 )
-                for db_obj, _ in sorted_files
+                for db_obj, _ in files
             ]

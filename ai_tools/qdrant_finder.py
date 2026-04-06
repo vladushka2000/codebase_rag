@@ -32,7 +32,7 @@ def get_context_from_qdrant(
         ),
     }
     result = search_states.PossibleFilesEntrypoints(
-        user_input=state.prompt,
+        user_input=" ".join(state.key_words),
         files=[],
         paths_list=[],
         valid_snippets={}

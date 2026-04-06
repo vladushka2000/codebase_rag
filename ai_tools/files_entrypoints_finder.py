@@ -52,6 +52,8 @@ async def get_possible_entrypoints(
                 "You are to determine which file paths may contain answer to user's questions.\n"
                 "User's prompt:\n"
                 f"{state.prompt}\n"
+                "Prompt key-words:\n"
+                f"{' '.join(state.key_words)}\n"
                 "List of possible file paths:\n"
                 f"{''.join([el.path for el in all_code_files])}"
                 f"Potential paths count should not exceed {const.MAX_POTENTIAL_ENTRYPOINTS_COUNT}"
@@ -62,10 +64,11 @@ async def get_possible_entrypoints(
         structured_llm = ollama_client.with_structured_output(rag_dto.PotentialFilePaths)
         response = await structured_llm.ainvoke([system_message, user_message])
 
-        found_files = await runtime.context.files_repo.list(
+        found_files_with_llm = await runtime.context.files_repo.list(
             paths=response.paths
         )
-        found_files = found_files[:const.MAX_POTENTIAL_ENTRYPOINTS_COUNT]
+        found_files_with_llm = found_files_with_llm[:const.MAX_POTENTIAL_ENTRYPOINTS_COUNT]
+        found_files.extend(found_files_with_llm)
 
     return search_states.PossibleFilesEntrypoints(
         user_input=state.prompt,
@@ -85,7 +88,7 @@ def check_if_files_left(
     """
 
     files_left = len(state.files)
-    logger.info("%i possible entrypoints left", files_left)
+    logger.info("%s possible entrypoints left", str(files_left) if files_left else "No")
 
     return bool(files_left)
 
@@ -109,7 +112,7 @@ async def check_file(
     imports_to_check = const.ENTRYPOINT_IMPORTS_COUNT
 
     while files and imports_to_check:
-        file = files.pop()
+        file = files.pop(0)
         logger.info("Analyzing file %s...", file.path)
         snippet_text_part = (
             "\nSnippets from files related to this by import:"

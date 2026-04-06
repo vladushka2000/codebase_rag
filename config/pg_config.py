@@ -38,8 +38,8 @@ class PostgresConfig(BaseSettings):
         default=10,
     )
 
-    gin_search_score: float = Field(
-        default=0.3,
+    search_score: float = Field(
+        default=0.8,
         description="GIN index search score",
     )
 

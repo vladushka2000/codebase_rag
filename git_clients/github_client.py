@@ -1,5 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
+from logging import getLogger
 from pathlib import Path
 from typing import AsyncGenerator, List, Optional, Dict, Any
 
@@ -11,6 +12,8 @@ from utils import const
 
 integration_config_ = integration_config.IntegrationConfig()
 http_client_error = RuntimeError("Http client is not initialized")
+
+logger = getLogger(__name__)
 
 
 class GitHubClient:
@@ -74,6 +77,8 @@ class GitHubClient:
         if not self._client:
             raise http_client_error
 
+        logger.info("Downloading file %s...", url)
+
         try:
             response = await self._client.get(url)
 
@@ -82,7 +87,7 @@ class GitHubClient:
 
             return None
         except Exception as e:
-            print(f"Error while downloading content from {url}: {e}")
+            logger.error(f"Error while downloading content from {url}: {e}")
 
             return None
 
@@ -124,7 +129,7 @@ class GitHubClient:
             )
 
         except Exception as e:
-            print(f"Error while processing file {file_info.get('path', 'unknown')}: {e}")
+            logger.error(f"Error while processing file {file_info.get('path', 'unknown')}: {e}")
 
             return None
 
@@ -152,7 +157,7 @@ class GitHubClient:
                         result.extend(subdir_files)
 
                 except Exception as e:
-                    print(f"Error while traversing directory {item['path']}: {e}")
+                    logger.error(f"Error while traversing directory {item['path']}: {e}")
 
         return result
 

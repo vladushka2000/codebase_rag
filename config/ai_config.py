@@ -83,14 +83,15 @@ class AIConfig(BaseSettings):
         Rules:
         Do not answer the user's question. Only transform the query to a list of key-words.
         If the user uses transliterated terms in other languages (e.g., "мидлваря", "прод", "деплой", "апишка"), translate them to English equivalents.
-        Try to add new key-words based on the user's input, that have the same semantics.
+        Preserve both user's initial input language and English.
+        Each word should be unique.
 
         Examples:
         User: "как работает мидлваря в этом проекте"
-        You: "middleware"
+        You: "middleware мидлваря"
         
         User: "найди апишку для юзеров"
-        You: "API entrypoint endpoint users"
+        You: "API entrypoint endpoint users АПИ пользователи"
         """
 
         return textwrap.dedent(sys_message)

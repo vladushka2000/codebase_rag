@@ -1,4 +1,5 @@
 import asyncio
+from logging import getLogger
 
 from config import pg_config
 from db.repositories import files_repository
@@ -6,6 +7,7 @@ from clients import alchemy_pg_client
 from git_clients import github_client
 
 pg_config_ = pg_config.PostgresConfig()
+logger = getLogger(__name__)
 
 
 async def fetch_files() -> None:
@@ -19,7 +21,7 @@ async def fetch_files() -> None:
 
     await pg_client.connect()
 
-
+    logger.info("Fetching all git files...")
     files_repo = files_repository.FilesRepository(pg_client)
     git_client = github_client.GitHubClient()
 
