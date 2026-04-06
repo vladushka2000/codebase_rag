@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional
 
-from sqlalchemy import UUID as SA_UUID, String, Float, Enum as SA_Enum, Text, Index, func
+from sqlalchemy import UUID as SA_UUID, String, Float, Enum as SA_Enum, Text, Index
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 

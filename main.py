@@ -84,7 +84,7 @@ async def main():
     result = await graph.ainvoke(
         input=start_and_final_states.InputPrompt(prompt="Есть ли в проекте cors-мидлваря?"),
         context=runtime_context,
-        config={"recursion_limit": 100},
+        config={"recursion_limit": 20},
     )
     print(result["answer"])
 
