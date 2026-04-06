@@ -256,13 +256,44 @@ class FilesRepository(
         """
 
         async with self.pg_client.session() as session:
-            query_vector = select(file_orm.FileORM).where(
-                file_orm.FileORM.search_vector.op("@@")(func.websearch_to_tsquery('russian', search_query))
+            words = search_query.split()
+            tsquery_parts = []
+
+            for word in words:
+                tsquery_parts.append(f"{word}:*")
+
+            tsquery_str = ' | '.join(tsquery_parts)
+
+            query_vector = select(
+                file_orm.FileORM,
+                func.ts_rank(
+                    file_orm.FileORM.search_vector,
+                    func.to_tsquery('simple', tsquery_str)
+                ).label('relevance')
+            ).where(
+                file_orm.FileORM.search_vector.op("@@")(func.to_tsquery('simple', tsquery_str))
+            ).order_by(
+                func.ts_rank(
+                    file_orm.FileORM.search_vector,
+                    func.to_tsquery('simple', tsquery_str)
+                ).desc()
             )
 
-            query_trigram = select(file_orm.FileORM).where(
-                func.similarity(file_orm.FileORM.content, search_query) > pg_config_.gin_search_score
-            )
+            if words:
+                trigram_score = func.greatest(
+                    *[func.similarity(file_orm.FileORM.content, word) for word in words if len(word) >= 3]
+                )
+
+                query_trigram = select(
+                    file_orm.FileORM,
+                    trigram_score.label('relevance')
+                ).where(
+                    trigram_score > pg_config_.gin_search_score
+                ).order_by(
+                    trigram_score.desc()
+                )
+            else:
+                query_trigram = select(file_orm.FileORM, func.literal(0.0).label('relevance')).where(False)  # noqa
 
             for query in [query_vector, query_trigram]:
                 if file_types is not None:
@@ -275,13 +306,21 @@ class FilesRepository(
             vector_result = await session.execute(query_vector)
             trigram_result = await session.execute(query_trigram)
 
-            files_dict = {}
+            files_with_score = {}
 
-            for db_obj in vector_result.scalars().all():
-                files_dict[db_obj.id] = db_obj
+            for db_obj, relevance in vector_result:
+                if db_obj.id not in files_with_score or relevance > files_with_score[db_obj.id][1]:
+                    files_with_score[db_obj.id] = (db_obj, relevance)
 
-            for db_obj in trigram_result.scalars().all():
-                files_dict[db_obj.id] = db_obj
+            for db_obj, relevance in trigram_result:
+                if db_obj.id not in files_with_score or relevance > files_with_score[db_obj.id][1]:
+                    files_with_score[db_obj.id] = (db_obj, relevance)
+
+            sorted_files = sorted(
+                files_with_score.values(),
+                key=lambda x: x[1],
+                reverse=True
+            )
 
             return [
                 git_file_dto.GitFileInDB(
@@ -292,5 +331,5 @@ class FilesRepository(
                     type=db_obj.type,
                     content=db_obj.content,
                 )
-                for db_obj in files_dict.values()
+                for db_obj, _ in sorted_files
             ]

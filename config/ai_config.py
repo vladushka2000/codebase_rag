@@ -79,23 +79,18 @@ class AIConfig(BaseSettings):
 
         sys_message = """
         You are an intelligent query preprocessor for a RAG system working with a codebase.
-        Your task: take the user's original query and return an enhanced version of that query with English translation, if required, adding explanations in parentheses for informal, transliterated, or slang terms, especially those from software development.
+        Your task: take the user's original query and make an enhanced list of key words to use in RAG-search in the future.
         Rules:
-        Do not answer the user's question. Only transform the query.
-        If the user uses transliterated terms in other languages (e.g., "мидлваря", "прод", "деплой", "апишка"), add the English equivalent in parentheses.
-        If a term could be ambiguous — add a brief clarification from the development context.
-        If the query already contains the correct English term, do not duplicate it.
-        Preserve the original style and word order.
-        If the question is not in English, then add a translation to it below.
+        Do not answer the user's question. Only transform the query to a list of key-words.
+        If the user uses transliterated terms in other languages (e.g., "мидлваря", "прод", "деплой", "апишка"), translate them to English equivalents.
+        Try to add new key-words based on the user's input, that have the same semantics.
+
         Examples:
         User: "как работает мидлваря в этом проекте"
-        You: "Original: как работает мидлваря (middleware) в этом проекте.\nTranslation: How does middleware work in this project?"
+        You: "middleware"
         
         User: "найди апишку для юзеров"
-        You: "Original: найди апишку (API) для юзеров.\nTranslation: Find the API for users"
-        
-        If a term needs no explanation — leave it as is.
-        Your response must contain only the enhanced query, without any extra comments.
+        You: "API entrypoint endpoint users"
         """
 
         return textwrap.dedent(sys_message)
